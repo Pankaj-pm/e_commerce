@@ -1,3 +1,4 @@
+import 'package:e_commerce/util.dart';
 import 'package:flutter/material.dart';
 
 class DetailPage extends StatelessWidget {
@@ -7,7 +8,7 @@ class DetailPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    List arguments =ModalRoute.of(context)?.settings.arguments as List;
+    Map<String,dynamic>? arguments =ModalRoute.of(context)?.settings.arguments as Map<String,dynamic>?;
     print(" build data $arguments");
 
     return Scaffold(
@@ -23,14 +24,16 @@ class DetailPage extends StatelessWidget {
       ),
       body: Column(
         children: [
-          Image.network(arguments[1]),
-          Text(arguments[0]),
+          Image.network(arguments?["image"]??""),
+          Text(arguments?["name"]??""),
         ],
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
+          if(arguments!=null){
+            cardList.add(arguments);
+          }
           Navigator.pop(context);
-
         },
         child: Icon(Icons.add_shopping_cart),
       ),

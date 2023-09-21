@@ -175,3 +175,5 @@ List<Map<String, dynamic>> productList = [
     ]
   }
 ];
+
+List<Map<String, dynamic>> cardList=[];

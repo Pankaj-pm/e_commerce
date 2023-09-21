@@ -1,4 +1,5 @@
 import 'package:e_commerce/util.dart';
+import 'package:e_commerce/views/cart_page.dart';
 import 'package:e_commerce/views/detail_page.dart';
 import 'package:e_commerce/views/home_page.dart';
 import 'package:flutter/material.dart';
@@ -23,6 +24,7 @@ class _MyAppState extends State<MyApp> {
       home: HomeScreen(),
       routes: {
         "detailPage":(context) => DetailPage(),
+        "cartPage":(context) => CartPage(),
         // "cartPage":(context) => Cart
       },
     );

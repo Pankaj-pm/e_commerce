@@ -15,7 +15,10 @@ class _HomeScreenState extends State<HomeScreen> {
   double slideValue = 0;
   RangeValues rangeValues = RangeValues(0.0, 0.0);
 
-  List<Map<String, dynamic>> fList=productList.map((e) => e).toList();
+  String selCat = "";
+  double min = 0;
+  double max = 1;
+  List<Map<String, dynamic>> fList = [];
 
   @override
   Widget build(BuildContext context) {
@@ -29,9 +32,14 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         centerTitle: true,
         actions: [
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Icon(Icons.shopping_cart, color: Colors.black),
+          InkWell(
+            onTap: () {
+              Navigator.pushNamed(context, "cartPage");
+            },
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Icon(Icons.shopping_cart, color: Colors.black),
+            ),
           )
         ],
       ),
@@ -72,11 +80,14 @@ class _HomeScreenState extends State<HomeScreen> {
                   onChanged: (val) {
                     dropDownSelection = val;
                     print("$val ${productList.length}");
-                    Map<String,dynamic> item = productList[val??0];
+                    Map<String, dynamic> item = productList[val ?? 0];
+                    selCat = item["name"];
                     fList.clear();
-                    fList.add(item);
+                    List<Map<String, dynamic>> pList = item["product_list"];
+                    fList = pList.map((e) => e).toList();
+                    print(fList);
+                    findMinMax();
                     setState(() {});
-
                   },
                   hint: Text("Select category.."),
                   value: dropDownSelection,
@@ -87,7 +98,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   label: Text("Clear"),
                   onPressed: () {
                     dropDownSelection = null;
-                    fList=productList.map((e) => e).toList();
+                    fList = productList.map((e) => e).toList();
                     setState(() {});
                   },
                 ),
@@ -112,58 +123,121 @@ class _HomeScreenState extends State<HomeScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 10),
               child: Row(
                 children: [
-                  Text("From\n\$ 12555",textAlign: TextAlign.center,),
+                  Text(
+                    "From\n\$ ${rangeValues.start.toInt()}",
+                    textAlign: TextAlign.center,
+                  ),
                   Expanded(
                     child: RangeSlider(
                       values: rangeValues,
+                      min: min,
+                      max: max,
                       onChanged: (value) {
                         rangeValues = value;
+                        filter();
                         setState(() {});
                         print(value);
                       },
                     ),
                   ),
-                  Text("To\n\$ 12",textAlign: TextAlign.center),
+                  Text("To\n\$ ${rangeValues.end.toInt()}", textAlign: TextAlign.center),
                 ],
               ),
             ),
-          Expanded(
-            child: SingleChildScrollView(
+          if (dropDownSelection != null)
+            Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: fList.map((e) {
-                  String n = e["name"];
-                  List<Map>? pl = e["product_list"] as List<Map>?;
-                  print(pl?.length);
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Text(
-                          n,
-                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-                        ),
-                      ),
-                      SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        child: Row(
-                          children: (pl ?? []).map((e) {
-                            return ProductWidget(
-                              data: e,
-                            );
-                          }).toList(),
-                        ),
-                      )
-                    ],
-                  );
-                }).toList(),
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Text(
+                      "$selCat",
+                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                    ),
+                  ),
+                  SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      children: (fList).map((e) {
+                        return ProductWidget(
+                          data: e,
+                        );
+                      }).toList(),
+                    ),
+                  )
+                ],
               ),
             ),
-          ),
+          if (dropDownSelection == null)
+            Expanded(
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: productList.map((e) {
+                    String n = e["name"];
+                    List<Map>? pl = e["product_list"] as List<Map>?;
+                    print(pl?.length);
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Text(
+                            n,
+                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                          ),
+                        ),
+                        SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          child: Row(
+                            children: (pl ?? []).map((e) {
+                              return ProductWidget(
+                                data: e,
+                              );
+                            }).toList(),
+                          ),
+                        )
+                      ],
+                    );
+                  }).toList(),
+                ),
+              ),
+            ),
         ],
       ),
     );
+  }
+
+  void findMinMax() {
+    if (fList.length == 0) return;
+    Map tmpMap = fList[0];
+    print("tmpMap ${tmpMap["price"].runtimeType}");
+    double tmpPrice = 0;
+    double tmpPrice1 = double.parse("${tmpMap["price"]}") ?? 1;
+
+    fList.forEach((element) {
+      var p = num.parse("${element["price"]}");
+      // 0 > 100
+      if (tmpPrice < p) {
+        tmpPrice = p.toDouble();
+      } else if (tmpPrice1 > p) {
+        tmpPrice1 = p.toDouble();
+      }
+    });
+
+    max = tmpPrice.toDouble();
+    min = tmpPrice1.toDouble();
+    rangeValues = RangeValues(min, max);
+  }
+
+  void filter() {
+    print(rangeValues.start);
+    print(rangeValues.end);
+
+    fList.forEach((element) {
+      print(element["price"]);
+    });
   }
 }
 
@@ -187,8 +261,8 @@ class ProductWidget extends StatelessWidget {
         // Navigator.pushNamed(context, "detailPage");
 
         //pass data to new screen using arguments
-        List list = [data?["name"], data?["image"]]; // pass multiple value
-        Navigator.pushNamed(context, "detailPage", arguments: list);
+        // List list = [data?["name"], data?["image"]]; // pass multiple value
+        Navigator.pushNamed(context, "detailPage", arguments: data);
       },
       child: Container(
         height: 220,
